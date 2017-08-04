@@ -1,0 +1,34 @@
+---
+title: "Chapter 01"
+output: html_notebook
+---
+date: 2017-08-03
+moderator: Rene
+
+This is out first R notebook to share and keep information about out sessions. 
+ 
+In R notebooks, you can include R code and see the output while being in the notebook, like this:
+```{r}
+library(tidyverse)
+library(ggsci)
+
+data("diamonds")
+
+p1 = ggplot(subset(diamonds, carat >= 2.2),
+            aes(x = table, y = price, colour = cut)) +
+        geom_point(alpha = 0.7) +
+        geom_smooth(method = "loess", alpha = 0.05, size = 1, span = 1) +
+        theme_bw()
+p1 + scale_color_npg()
+```
+
+Things we discussed today:
+
+* The **general style** in which Richard writes is focussed on narratives that build up to the important points. This does not always work, like when he fails to explain the Saturn-image example. Hopefully, this style is more helpful than annoying in future chapters.
+* As we go through this book, we want to draw conclusions about parallels between the Bayesian approach and **machine learning**, and answer for example: Does our type of data require Bayesian? What different assumptions do me make in Bayesian compared to in machine learning? 
+* We agree that science is not only about reject Null-Hypothesis. 
+* We all look forward to learn about Information criterions, which we all already used. 
+
+Homework:
+
+* Why does nature like the exponential family of functions? This has to do with Entropy, but why exactly does Entropy mean that many functions in nature look like a gaussian distribution?
