@@ -1,0 +1,332 @@
+---
+title: "Jonas Chapter 2"
+output: html_notebook
+---
+
+# Chapter 2 
+## 2.4.1: Grid method to calculate the posterior
+
+```{r}
+# define the grid
+p_grid <- seq(from=0, to=1, length.out = 40)
+
+#define prior
+prior <- rep(1, 40)
+
+#visualize before bayesian update
+plot( p_grid, prior, type="b", xlab="probabilities of water", ylab="prior probability")
+mtext("40 points")
+
+# compute likelihood over grid
+likelihood <- dbinom(6, size=9, prob=p_grid)
+
+# compute product of likelihood and prior
+unstd.posterior <- likelihood * prior
+
+# standardize the posterior, so it sums to 1
+posterior = unstd.posterior / sum(unstd.posterior)
+
+#visualize
+plot( p_grid, posterior, type="b", xlab="probabilities of water", ylab="posterior probability")
+mtext("40 points")
+```
+### with different priors
+#### skewed
+```{r}
+prior <- ifelse ( p_grid < 0.5, 0, 1)
+plot( p_grid, prior, type="b", xlab="probabilities of water", ylab="prior probability")
+unstd.posterior <- likelihood * prior
+posterior = unstd.posterior / sum(unstd.posterior)
+plot( p_grid, posterior, type="b", xlab="probabilities of water", ylab="posterior probability")
+```
+#### weird
+```{r}
+prior <- exp( -5*abs(p_grid - 0.5) )
+plot( p_grid, prior, type="b", xlab="probabilities of water", ylab="prior probability")
+unstd.posterior <- likelihood * prior
+posterior = unstd.posterior / sum(unstd.posterior)
+plot( p_grid, posterior, type="b", xlab="probabilities of water", ylab="posterior probability")
+```
+## 2.4.2 Quadric approximation
+`Map` stands for `Maximum a posteriori`, and is a fitting tool from the book's R package. To use `map`, you provide a _formula_, a list of _data_, and a list of _start_ values for the parameters. The formula defines the likelihood and the prior.
+```{r}
+library(rethinking)
+globe.qa <- map(
+  alist(
+    w ~ dbinom(9,p), # binomial likelihood
+    p ~ dunif(0,1)   # uniform prior
+  ),
+  data = list(w=6)
+)
+```
+```{r eval=TRUE, echo=TRUE}
+# To prevent print output :{r  eval=TRUE, echo=FALSE}
+print(precis(globe.qa))
+```
+```{r}
+print("Read as: Assuming the posterior is Gaussian, it is maximzed at `Mean`, and its standard deviation is `StdDev`", 3)
+```
+### Compare with the exact solution given by the beta distribution (why?)
+```{r}
+w <- 6
+n <- 9
+curve( dbeta(x , w+1, n-w+1), from=0, to=1)
+curve( dnorm(x , 0.67, 0.16 ), lty=2, add=TRUE)
+```
+
+# Exercises
+*2E1*
+(1) Pr(rain|Monday)
+
+*2E2*
+(3) The probability that it is Monday, given that it is raining.
+
+*2E3*
+(1) Pr(Monday|rain)
+
+*2E4*
+That the most likely distribution of land and sea on earth is 30% and 70%.
+
+*2M1*
+
+plot posteriors for unbiased prior and different data for likely water distribution
+```{r}
+p_vals <- seq(from=0, to=1, length.out = 20)
+prior <- rep(1, length(p_vals))
+likelihood1 <- dbinom(3, size = 3, prob = p_vals)
+likelihood2 <- dbinom(3, size = 4, prob = p_vals)
+likelihood3 <- dbinom(5, size = 7, prob = p_vals)
+likelihood4 <- dbinom(700, size = 1000, prob = p_vals)
+
+unstd.posterior1 <- prior * likelihood1
+unstd.posterior2 <- prior * likelihood2
+unstd.posterior3 <- prior * likelihood3
+unstd.posterior4 <- prior * likelihood4
+
+posterior1 <- unstd.posterior1 / sum(unstd.posterior1)
+posterior2 <- unstd.posterior2 / sum(unstd.posterior2)
+posterior3 <- unstd.posterior3 / sum(unstd.posterior3)
+posterior4 <- unstd.posterior4 / sum(unstd.posterior4)
+
+par(mfrow=c(1,4))
+y2 = .2
+plot(p_vals, posterior1, type='b', axes = TRUE, ylim=range(c(0,y2)))
+plot(p_vals, posterior2, type='b', axes = TRUE, ylim=range(c(0,y2)))
+plot(p_vals, posterior3, type='b', axes = TRUE, ylim=range(c(0,y2)))
+plot(p_vals, posterior4, type='b')
+```
+*2M2*
+now with step prior:
+
+```{r}
+step_prior = c(rep(0, length=(10)), rep(10, length=(10)))
+step_prior = step_prior / sum(step_prior)
+
+unstd.posterior1 <- step_prior * likelihood1
+unstd.posterior2 <- step_prior * likelihood2
+unstd.posterior3 <- step_prior * likelihood3
+unstd.posterior4 <- step_prior * likelihood4
+
+posterior1 <- unstd.posterior1 / sum(unstd.posterior1)
+posterior2 <- unstd.posterior2 / sum(unstd.posterior2)
+posterior3 <- unstd.posterior3 / sum(unstd.posterior3)
+posterior4 <- unstd.posterior4 / sum(unstd.posterior4)
+
+par(mfrow=c(1,4))
+y2 = .2
+plot(p_vals, posterior1, type='b', axes = TRUE, ylim=range(c(0,y2)))
+plot(p_vals, posterior2, type='b', axes = TRUE, ylim=range(c(0,y2)))
+plot(p_vals, posterior3, type='b', axes = TRUE, ylim=range(c(0,y2)))
+plot(p_vals, posterior4, type='b')
+
+```
+*2M3*
+Mars and Earth balls; L: Land, E: Earth, M: Mars
+
+p(L|E) = .3
+
+p(L|M) = 1
+
+p(E), p(M) = .5
+
+p(L) = 1/2 * (.3 + 1)
+
+and
+
+p(E|L) = p(L|E)*p(E) / p(L)
+```{r}
+p_e_l = .3*.5/(0.5*1.3)
+print(p_e_l)
+```
+*2M4*
+
+p(B|c1) = 1 
+
+p(B|c2) = .5 
+
+p(B|c3) = 0
+
+p(c1,2,3) = 1/3
+
+p(B) = 1/3 * (1 + .5 + 0) = .5 
+
+p(c1|B) = p(B|c1)*p(c1) / p(B) 
+
+        = 1*1/3 / .5 = 2/3
+        
+*2M5*
+
+now two c1 cards, hence:
+
+p(c1,2,3) = 2/4, 1/4, 1/4
+
+p(B) = 1/4 (1+1+.5+0) = 5/2*1/4 = 5/8
+
+thus
+
+p(c1|B) = 1*2/4 / (5/8) = 4/5
+```{r}
+card.1.likelihood <- 2
+card.2.likelihood <- 1
+card.3.likelihood <- 0
+card.4.likelihood <- 2
+likelihood <- c(card.1.likelihood, card.2.likelihood, card.3.likelihood, card.4.likelihood)
+prior <- rep(x = 1, length = length(likelihood))
+unstandardized.posterior <- prior * likelihood
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+print(posterior)
+```
+
+*2M6*
+
+now black card are heavy:
+
+p(c1) = 1/6, p(c2) = 2/6, p(c3) = 3/6
+
+thus p(c1|B) = 1*1/6 / p(w) 
+
+What's p(w) in this case?
+
+I guess there are 12 paths to data:
+
+c1 has one when facing 'up' or 'down', 
+c2 has one when facing 'up', and is drawn twice as often
+c3 has none, and is drawn three times as often
+
+Thus, 4 out of 12 paths lead to black, or, p(w) = 1/3
+
+Hence: 1/6 / 1/3 = 3/6 = 0.5
+
+
+```{r}
+card.1.likelihood <- 2
+card.2.likelihood <- 1
+card.3.likelihood <- 0
+likelihood <- c(card.1.likelihood, card.2.likelihood, card.3.likelihood)
+prior <- c(1/6, 2/6, 3/6)
+unstandardized.posterior <- prior * likelihood
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+print(unstandardized.posterior )
+print(1/6 / (4/6))
+```
+*2M7*
+There are two ways c1 could make the first card black, and 1 way c2 could have done this. 
+
+Tracing paths back: 
+
+From second card 'white' there are two ways to c2, i.e. when c3 caused 'white' up, or down.
+
+But there are 6 ways to c1, three for each way black was generated in the first card. Both times, one path from white back could come if c2 caused white, and two if c3 caused white.
+
+Thus probability of black on the other side, i.e. c1: 6/8 total paths = 0.75.
+
+```{r}
+c1.likelihood = 2
+c2.likelihood = 1
+c3.likelihood = 0
+likelihood = c(c1.likelihood, c2.likelihood, c3.likelihood)
+
+prior = c(1,1,1)
+
+unstd.posterior = likelihood*prior
+print(unstd.posterior)
+posterior = unstd.posterior / sum(unstd.posterior)
+
+print(posterior)
+
+prior = posterior
+c1.likelihood = 3
+c2.likelihood = 2
+c3.likelihood = 0
+
+likelihood = c(c1.likelihood, c2.likelihood, c3.likelihood)
+unstd.posterior = likelihood*prior
+print(unstd.posterior)
+posterior = unstd.posterior / sum(unstd.posterior)
+print(posterior)
+```
+
+*2H1*
+
+```{r}
+
+prior = c(1, 1)
+speciesA.likelihood = .1
+speciesB.likelihood = .2
+likelihood = c(speciesA.likelihood, speciesB.likelihood)
+
+unstd.posterior = prior*likelihood
+posterior = unstd.posterior / sum(unstd.posterior)
+print("this is the posterior probability of species membership:")
+print(posterior)
+print("multiplied with the probabilities of twins, and summed means the probability of twinse again is now higher than for species A and less than species B, but more than their average.")
+print(sum(posterior*likelihood))
+```
+
+
+*2H2*
+already got that: 1/3
+
+*2H3*
+```{r}
+#from above
+prior = posterior
+speciesA.likelihood = .9
+speciesB.likelihood = .8
+likelihood = c(speciesA.likelihood, speciesB.likelihood)
+unstd.posterior = prior*likelihood
+twins_singletong_posterior = unstd.posterior / sum(unstd.posterior)
+print("After giving birth to twins first, and then a singleton child, 
+      the probability of the panda mom being of species A is:")
+
+print(twins_singletong_posterior[1])
+
+```
+
+*2H4*
+
+```{r}
+prior = c(1,1)
+speciesA.likelihood = .8
+speciesB.likelihood = 1-.65
+likelihood = c(speciesA.likelihood, speciesB.likelihood)
+
+unstd.posterior = prior*likelihood
+posterior = unstd.posterior / sum(unstd.posterior)
+print('posterior from genetic test only')
+print(posterior)
+
+#now using child info (twins, singleton)
+prior = twins_singletong_posterior
+likelihood = c(speciesA.likelihood, speciesB.likelihood)
+
+unstd.posterior = prior*likelihood
+posterior = unstd.posterior / sum(unstd.posterior)
+print('posterior including child info:')
+print(posterior)
+```
+
+
+
+
+
