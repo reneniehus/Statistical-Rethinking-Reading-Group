@@ -28,6 +28,7 @@ Here is why not:
 that a function about where a value x of a system lies
 
 # Chapter 2 - Exercises
+
 ## 2.4.1: Grid method to calculate the posterior
 
 ```{r}
@@ -111,16 +112,19 @@ curve( dnorm(x , 0.67, 0.16 ), lty=2, add=TRUE)
 *2E4*
 That the most likely distribution of land and sea on earth is 30% and 70%.
 
+What does it mean when we say that the probability of water in the globe experiment is 70%? In reality, we throw the globe and it will be water or land with 100% certainty, given the physics of the throw. Now, we don't understand the physics in all its details, but instead we try to make a 'good' guess by making a rought model of the mechanism; in this case the model uses only the information about how much water there is in the globe, and it ignores the parameters of the throw. To express that we are making a guess from this model, we use the term 'probability'.
+
+
 *2M1*
 
 plot posteriors for unbiased prior and different data for likely water distribution
 ```{r}
 p_vals <- seq(from=0, to=1, length.out = 20)
 prior <- rep(1, length(p_vals))
-likelihood1 <- dbinom(3, size = 3, prob = p_vals)
-likelihood2 <- dbinom(3, size = 4, prob = p_vals)
-likelihood3 <- dbinom(5, size = 7, prob = p_vals)
-likelihood4 <- dbinom(700, size = 1000, prob = p_vals)
+likelihood1 <- dbinom( x=3 , size=3 , prob=p_vals )
+likelihood2 <- dbinom( x=3 , size=4 , prob=p_vals )
+likelihood3 <- dbinom( x=5 , size=7 , prob=p_vals )
+likelihood4 <- dbinom( x=700 , size=1000, prob=p_vals ) # [R] good idea
 
 unstd.posterior1 <- prior * likelihood1
 unstd.posterior2 <- prior * likelihood2
@@ -144,7 +148,8 @@ now with step prior:
 
 ```{r}
 step_prior = c(rep(0, length=(10)), rep(10, length=(10)))
-step_prior = step_prior / sum(step_prior)
+# or step_prior <- ifelse( p_vals<0.5 , 0 , 1 )
+step_prior = step_prior / sum(step_prior) # [R] not needed, right?
 
 unstd.posterior1 <- step_prior * likelihood1
 unstd.posterior2 <- step_prior * likelihood2
@@ -181,12 +186,21 @@ p(E|L) = p(L|E)*p(E) / p(L)
 ```{r}
 p_e_l = .3*.5/(0.5*1.3)
 print(p_e_l)
+
+## or doing is analogous to above
+p_prior <- c(0.5 , 0.5) # [Mars, Earth]
+p_land <-  c(1 , 0.3) # p that it is land given [Mars, Earth]
+likelihood <- dbinom( x=1 , size=1 , prob=p_land)
+posterior_nstr <- p_prior * likelihood
+posterior <- posterior_nstr / sum( posterior_nstr )
+print( "[Mars , Earth]")
+print( posterior )
 ```
 *2M4*
 
-p(B|c1) = 1 
+p(B|c1) = 1 # [R]: 2 
 
-p(B|c2) = .5 
+p(B|c2) = .5 # [R]: 1 
 
 p(B|c3) = 0
 
@@ -298,6 +312,9 @@ prior = c(1, 1)
 speciesA.likelihood = .1
 speciesB.likelihood = .2
 likelihood = c(speciesA.likelihood, speciesB.likelihood)
+# alternative [R]
+p_birth <- c(0.1 , 0.2) # [A B]
+likelihood <- dbinom( x=1 , size=1 , prob=p_birth)
 
 unstd.posterior = prior*likelihood
 posterior = unstd.posterior / sum(unstd.posterior)
@@ -305,6 +322,9 @@ print("this is the posterior probability of species membership:")
 print(posterior)
 print("multiplied with the probabilities of twins, and summed means the probability of twinse again is now higher than for species A and less than species B, but more than their average.")
 print(sum(posterior*likelihood))
+# alternative but the same [R]
+print(sum(posterior*p_birth))
+
 ```
 
 
