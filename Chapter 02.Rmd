@@ -4,8 +4,33 @@ output:
   html_document: default
   html_notebook: default
 ---
+date: 2017-08-08
+moderator: Karl
 
-# Chapter 2 
+# Chapter 2 summary
+
+* **Does nature use bayesian?**: animals don't go fully bayesian, instead they use heuristics [= solutions to problems attempting to be good and cheap for immediate goals (instead of optimal)]. Think of heuristics as models that focus on the main predictors, while ignoring some noisy ones. The benefit over a 'full'-model is that you have to sense less, and it protects from overfitting [see Joao's work on evolution of sensing in changing environments]. As long as we don't know anything about the system, e.i. which predictors contain most information, going full bayesian is a great start. 
+
+* **Information Entropy**: We still don't understand the details of entropy maximising functions. But we are starting to understand the broader idea: If *x* is a characteristic of a system [like the result of a coin-flip] and if *f(x)* is a function to describe what *x* is, then the shape of *f(x)* will be of an entropy maximising function when it contains the least information about *x*. On the other hand, when there is information about x [e.i. when then coin is not fair], then *f(x)* will be a function that is biased. In modelling, our main interest is to tell apart the biased part of *f(x)* from the random noise that is contained in the entropy maximising part of *f(x)*. We use the information of the biased part to estimate the model coefficients, and the use the remaining random noise to estimate the variance in the model.
+
+* **Intuitive Likelihood definition**: The likelihood is the relative number of ways in which different conjectures of the model can produce the data. It is simple counting: For each conjecture of the model [= set of parameters of the model] count the different data it can produce, then eliminate the ways that are not consistent with the data. Do this for all conjectures of the model, and then divide by those counts by the total number of counts in which any conjecture can produce any data. 
+
+* **Priors = regularization**: Priors in a bayesian model is the relative number of ways in which any of the conjectures is possible before the data has happened. For instance, you might know that there are more black marbles than white in the factory, and so conjectures with more black marbles are more plausible. Conceptually, this is simular to regularization in regression analysis, where you say that models with small parameter values [and small numbers of parameters] is what you want [because you want to reduce overfitting] and so you penalise complex models. Regularization is somehow arbitrary in how you set up the penalising system [linear penalty, or quadratic, or on/off], but it is rigorous when it optimises the penalty parameters, because we can measure overfitting using corss-validation. We are interested in whether or not Bayesian does also rigorously test priors by evaluating the tendency to overfit. 
+
+* **Bayesian updating in meta-analysis**: Imagine 2 studies on the effect of drinking beer on body hight, one performed in Germany and one in Japan. Both studies are using a Bayesian model and give you the posterior distributions for the effect of beer on height in each population. You want to study the same effect, but in the entire world population. Would you use the posteriors of the 2 studies, multiply them and use them as your prior? 
+Here is why not:
+
+    * The 2 studies have a different design, different researchers collecting the data, and the models might differ, and so the distributions are 'small world' distributions, so they are wrong in the big world, and one is certainly better than the other
+    * It might be valuable to keep the separation to retain the information about asian and European populations
+    * Instead: you might want to use the point estimates from the 2 studies, add a wider variance to them to recognise your belief in those studies and this as a prior in your study. 
+
+
+
+
+that a function about where a value x of a system lies
+
+# Chapter 2 - Exercises
+
 ## 2.4.1: Grid method to calculate the posterior
 
 ```{r}
@@ -89,16 +114,19 @@ curve( dnorm(x , 0.67, 0.16 ), lty=2, add=TRUE)
 *2E4*
 That the most likely distribution of land and sea on earth is 30% and 70%.
 
+What does it mean when we say that the probability of water in the globe experiment is 70%? In reality, we throw the globe and it will be water or land with 100% certainty, given the physics of the throw. Now, we don't understand the physics in all its details, but instead we try to make a 'good' guess by making a rought model of the mechanism; in this case the model uses only the information about how much water there is in the globe, and it ignores the parameters of the throw. To express that we are making a guess from this model, we use the term 'probability'.
+
+
 *2M1*
 
 plot posteriors for unbiased prior and different data for likely water distribution
 ```{r}
 p_vals <- seq(from=0, to=1, length.out = 20)
 prior <- rep(1, length(p_vals))
-likelihood1 <- dbinom(3, size = 3, prob = p_vals)
-likelihood2 <- dbinom(3, size = 4, prob = p_vals)
-likelihood3 <- dbinom(5, size = 7, prob = p_vals)
-likelihood4 <- dbinom(700, size = 1000, prob = p_vals)
+likelihood1 <- dbinom( x=3 , size=3 , prob=p_vals )
+likelihood2 <- dbinom( x=3 , size=4 , prob=p_vals )
+likelihood3 <- dbinom( x=5 , size=7 , prob=p_vals )
+likelihood4 <- dbinom( x=700 , size=1000, prob=p_vals ) # [R] good idea
 
 unstd.posterior1 <- prior * likelihood1
 unstd.posterior2 <- prior * likelihood2
@@ -122,7 +150,8 @@ now with step prior:
 
 ```{r}
 step_prior = c(rep(0, length=(10)), rep(10, length=(10)))
-step_prior = step_prior / sum(step_prior)
+# or step_prior <- ifelse( p_vals<0.5 , 0 , 1 )
+step_prior = step_prior / sum(step_prior) # [R] not needed, right?
 
 unstd.posterior1 <- step_prior * likelihood1
 unstd.posterior2 <- step_prior * likelihood2
@@ -159,12 +188,21 @@ p(E|L) = p(L|E)*p(E) / p(L)
 ```{r}
 p_e_l = .3*.5/(0.5*1.3)
 print(p_e_l)
+
+## or doing is analogous to above
+p_prior <- c(0.5 , 0.5) # [Mars, Earth]
+p_land <-  c(1 , 0.3) # p that it is land given [Mars, Earth]
+likelihood <- dbinom( x=1 , size=1 , prob=p_land)
+posterior_nstr <- p_prior * likelihood
+posterior <- posterior_nstr / sum( posterior_nstr )
+print( "[Mars , Earth]")
+print( posterior )
 ```
 *2M4*
 
-p(B|c1) = 1 
+p(B|c1) = 1 # [R]: 2 
 
-p(B|c2) = .5 
+p(B|c2) = .5 # [R]: 1 
 
 p(B|c3) = 0
 
@@ -276,6 +314,9 @@ prior = c(1, 1)
 speciesA.likelihood = .1
 speciesB.likelihood = .2
 likelihood = c(speciesA.likelihood, speciesB.likelihood)
+# alternative [R]
+p_birth <- c(0.1 , 0.2) # [A B]
+likelihood <- dbinom( x=1 , size=1 , prob=p_birth)
 
 unstd.posterior = prior*likelihood
 posterior = unstd.posterior / sum(unstd.posterior)
@@ -283,6 +324,9 @@ print("this is the posterior probability of species membership:")
 print(posterior)
 print("multiplied with the probabilities of twins, and summed means the probability of twinse again is now higher than for species A and less than species B, but more than their average.")
 print(sum(posterior*likelihood))
+# alternative but the same [R]
+print(sum(posterior*p_birth))
+
 ```
 
 
