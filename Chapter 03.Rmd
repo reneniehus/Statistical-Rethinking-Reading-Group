@@ -15,6 +15,48 @@ moderator: Jonas
 
 * __Point estimates__: As a researcher you normall want to report a good picture of the posterior, and here point estimates are not helpful. But for decision making, point estimates make sense. In this case, the estimate of choice will depend on the loss-function. So what is the penalty/cost for the estimate being to high or too small. 
 
+#### Average likelihood
+In particular, we realized that there is still uncertainty among us how to interpret the average likelihood. In simple examples, this is the sum of the paths to the data. How can we interpret this when we are dealing with more complicated scenarios, e.g. more data, continuous parameter space? Important to remember the function of this: it makes the posterior sum to one (i.e. turn it into a probability distribution).
+
+Furthermore, we should discuss again and track our intuition into the basic functionality of Bayesian updating: that our posterior turns into the new prior upon using additional / new *independent* data.  
+
+#### Use features of posterior for CIs
+In general, we concluded that chapter three spoke to our intuition as scientists, and was therefore not terribly hard. We discussed that sampling from the posterior as a way to generate confidence intervals is elegant and intuitive (perhaps unlike the frequentists's interpretation of confidence intervals). In particular, it gives a lot of freedom which intervals to present, based upon choosing areas of the posterior (e.g. the highest posterior density interval, HPDI, that finds the endpoints of the narrowest interval of the posterior where 50% of the probability mass (area) are located). Of course, it must be remembered that the point of this is to usefully summarize the posterior and that of course the entire posterior is relevant but may be unfeasible to show. 
+
+#### Loss
+A principled way to not choose the entire posterior is the introduction of a loss function (there are different ones, potentially implying different point estimates). The presented loss function penalizes a parameter choice proportional to the absolute distance of the choice, /disfavoring extreme parameter choices/ as |0.5 - x| for x in [0, 1] is minimized. We then weight our posterior distribution by this loss function to yield the more conservative point estimate of a parameter (/sounds like regularization/?). For example, if you have a posterior that linearly decreases in the interval [0, 1], then the MAP (maximum a posteriori) value would be p = 0. Including loss then favors a more conservative value > 0 (Figure).  
+```{r, echo=FALSE}
+p_grid <- seq( from=0 , to=1 , length.out=1000 ) 
+prior <- rep(1,1000) 
+likelihood <- dbinom( 3 , size=3 , prob=p_grid ) 
+posterior <- likelihood * prior 
+posterior <- posterior / sum(posterior) 
+samples <- sample( p_grid , size=1e4 , replace=TRUE , prob=posterior )
+
+loss <- sapply( p_grid , function(d) sum( abs( d - p_grid )))
+
+losspost <- sapply( p_grid , function(d) sum( posterior*abs( d - p_grid )))
+#plot
+plot(p_grid,loss, type='l', lty=3,lwd=2)
+par(new = TRUE)
+plot(p_grid,posterior, type = "l", lty=5,lwd=4, axes = FALSE, bty = "n", xlab = "", ylab = "")
+par(new = TRUE)
+plot(p_grid,losspost, type = "l", pch='O',lwd=4, axes = FALSE, bty = "n", xlab = "", ylab = "")
+text(0.5, 0.6, '.. loss\n-- posterior\n- loss*posterior', adj=0)
+```
+
+#### Making predictions: propagate uncertainty
+The utility and importance of the entire posterior distribution is made clear when discussion prediction---the very point of most modeling. We have two sources of uncertainty: regarding the data, and regarding our parameter choice from fitting. If we chose only a point estimate for our parameter, e.g. the MAP value, our 'prediction' would be 'narrower' and thus overconfident. Instead, we should predict based upon the entire posterior. For this, we choose the parameter values from the entire possible range, and weight /their individual prediction/ by the posterior value for that value. *I wonder if this logic may help rationalize the idea of the 'average likelihood'*?
+
+#### Conclusions and memorable quotes
+Both Rene and I really liked some general advice in this chaper (this appears to become a good pattern in this book!).
+
+- *"fetishizing precision to the 5th decimal place will not improve your science"*
+- *Don't try and find out __if__ but __how__ your model fails to describe the data. All models are wrong in some respect, so use your judgement.*
+- On looking at your data in different ways (e.g. longest sequence of 'Water' outcomes'): *"In your own modeling, you’ll have to imagine aspects of the data that are relevant in your context, for your purposes".* This is key advice to data analysis; and arguably the hardest part.
+
+
+
 
 # Chapter 3 - Exercises
 
