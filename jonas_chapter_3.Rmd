@@ -1,0 +1,128 @@
+---
+title: "jonas_chapter_3"
+output: html_notebook
+---
+
+# Sampling from the posterior is the name of the game
+
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=1000 ) 
+prior <- rep( 1 , 1000 ) 
+likelihood <- dbinom( 6 , size=9 , prob=p_grid ) 
+posterior <- likelihood * prior 
+posterior <- posterior / sum(posterior)
+# sample from posterior
+samples <- sample( p_grid , prob=posterior , size=1e4 , replace=TRUE )
+plot(samples)
+```
+```{r}
+library(rethinking)
+dens( samples )
+```
+```{r}
+# add up posterior probability where p < 0.5 
+print(sum( posterior[ p_grid < 0.5 ] ))
+# instead, find the frequency of parameter values below 0.5 for a method that works with models of more parameters
+print(sum( samples < 0.5) /1e4 )
+
+# or for another interval
+print( sum( samples > 0.5 & samples < 0.75) / 1e4)
+
+# or to find the boundaries of the lower 80% of posterior probability
+print(quantile( samples , 0.8 ))
+
+# or to find the middle 80% (i.e. the middle 80% interval lies between the 10th percentile and the 90th percentile.)
+
+print(quantile( samples , c( 0.1 , 0.9 ) ))
+```
+In terms of supporting inferences about swhich parameters are consisten with the data, these intervals are not perfect (especially when the posterior is funnily skewed.)
+
+
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=1000 ) 
+prior <- rep(1,1000) 
+likelihood <- dbinom( 3 , size=3 , prob=p_grid ) 
+posterior <- likelihood * prior 
+posterior <- posterior / sum(posterior) 
+samples <- sample( p_grid , size=1e4 , replace=TRUE , prob=posterior )
+
+# the 50% percentile confidence interval is computed by the PI function
+PI( samples, prob = 0.5)
+
+# choose the 'highest posterior density interval' - the narrowest interval contraining the specified probability mass.
+HPDI( samples, prob = 0.5)
+```
+To get a point estimate:
+
+```{r}
+print(p_grid[ which.max(posterior) ])
+
+print(chainmode( samples , adj=0.01 ))
+
+```
+
+
+Understanding loss: absolute distance.
+Minimal at 0.5 in [0,1].
+Maximal at 1 or 0 in [0, 1]
+```{r}
+print('loss w/o posterior info')
+print( sum(abs(0.5 - p_grid)))
+print( sum(abs(0.0 - p_grid)))
+print( sum(abs(1.0 - p_grid)))
+png("./loss.png",)
+
+loss <- sapply( p_grid , function(d) sum( abs( d - p_grid )))
+
+print('loss with posterior')
+print( sum(posterior*abs(0.5 - p_grid)))
+print( sum(posterior*abs(0.0 - p_grid)))
+print( sum(posterior*abs(1.0 - p_grid)))
+losspost <- sapply( p_grid , function(d) sum( posterior*abs( d - p_grid )))
+#plot
+plot(p_grid,loss, type='l', lty=3,lwd=2)
+par(new = TRUE)
+plot(p_grid,posterior, type = "l", lty=5,lwd=4, axes = FALSE, bty = "n", xlab = "", ylab = "")
+par(new = TRUE)
+plot(p_grid,losspost, type = "l", pch='O',lwd=4, axes = FALSE, bty = "n", xlab = "", ylab = "")
+text(0.5, 0.6, '.. loss\n-- posterior\n- loss*posterior', adj=0)
+dev.off()
+```
+
+USing a loss function as a principled way to figure out a point estimate
+
+```{r}
+expected_loss_guess_0_5 = sum(posterior * abs(0.5 - p_grid))
+print(expected_loss_guess_0_5)
+
+#all loss (repeat above for each value)
+loss <- sapply( p_grid , function(d) sum( posterior*abs( d - p_grid ) ))
+plot(p_grid,loss)
+
+```
+
+```{r}
+
+dummy_v <- rbinom(1e5, size=1e3, prob=0.7)
+simplehist( dummy_v, xlab="dummy water count")
+```
+
+# Dummy data
+```{r}
+dbinom( 0:2 , size=2 , prob=0.7 )
+hist(rbinom( 500 , size=2 , prob=0.7 ))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
