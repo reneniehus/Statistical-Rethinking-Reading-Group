@@ -7,7 +7,13 @@ moderator: Jonas
 
 # Chapter 3 summary
 
-* 
+* __Counting__: The best thing about Bayesian, you don't can simply think empirically by counting things. Everything is counts, even probability distributions. By using this "empirical attack" on the posterior, a difficult problem of integral calculus is transformed into an easy problem of summarising samples. 
+
+* __Bayesian about Hypothesis testing__: The question in Hypothsis testing is, whether the signal from out model about the Hypothesis is real. The biggest impact on this question is not how well you test, but how realistic you choose your hypothesis. Statistical learning is not about fancy testing, but about thinking. 
+
+* __Describe the Posterior__: The highest posterior density interval is the slimmest interval that holds a given fraction of the posterior samples. It is not often reported but it does make a lot of sense. In the end, you need to ask you, what is the easiest way to report your posterior. If it is a weird skewed one, just give the whole distribution. 
+
+* __Point estimates__: As a researcher you normall want to report a good picture of the posterior, and here point estimates are not helpful. But for decision making, point estimates make sense. In this case, the estimate of choice will depend on the loss-function. So what is the penalty/cost for the estimate being to high or too small. 
 
 
 # Chapter 3 - Exercises
