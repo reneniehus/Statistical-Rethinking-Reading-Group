@@ -1,0 +1,210 @@
+---
+title: "Chapter 3 Excecise Jonas"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(rethinking)
+p_grid <- seq( from=0 , to=1 , length.out=1000 ) 
+prior <- rep( 1 , 1000 ) 
+likelihood <- dbinom( 6 , size=9 , prob=p_grid ) 
+posterior <- likelihood * prior 
+posterior <- posterior / sum(posterior) 
+set.seed(100) 
+samples <- sample( p_grid , prob=posterior , size=1e4 , replace=TRUE)
+```
+
+```{r}
+#E1
+plot(p_grid, posterior)
+dens(samples, add = FALSE)
+abline( v=0.2 )
+```
+
+```{r}
+
+dens(samples)
+abline( v=0.2 )
+length(samples[samples<0.2])/length(samples)#E1:  5e-04
+length(samples[samples>0.8])/length(samples)#E2: 0.1117
+length(samples[(samples>0.2) & (samples<0.8)])/length(samples)#E3: 0.8878
+quantile(samples, seq(0,1,0.2))[2]#E4: 0.5195195 
+quantile(samples, seq(0,1,0.2))[5]#E5: 0.7567568 
+HPDI(samples, p=0.66)#E6: 0.5205205 0.7847848
+PI(samples, 0.66)#E7: 0.5005005 0.7687688
+```
+
+# Medium
+```{r}
+library(rethinking)
+p_grid <- seq(from=0, to=1.0, length.out=1000)
+prior <- rep(1, length(p_grid))
+likelihood <- dbinom(8, size=15, prob=p_grid) #TRY with rbinom, avg over results?
+posterior.unstandardized  <- likelihood*prior
+posterior <- posterior.unstandardized / sum(posterior.unstandardized)
+#plot(p_grid, posterior)
+
+samples <- sample( p_grid, 5000, replace=TRUE,prob=posterior) #M2
+HPDI(samples,prob = 0.9) #M2: 0.3313313 0.7197197 
+
+#posterior check
+dsamples <- rbinom(n=length(samples), size=15, prob = samples)
+hist(dsamples)
+length(dsamples[dsamples==8])/length(samples) #M3: 0.1436
+
+#Using the posterior distribution constructed from the new (8/15) data, now calculate the probability of observing 6 water in 9 tosses.
+#what's the new data? the dsamples
+#use old posterior as prior:
+newprior <- posterior
+newlikelihood <- dbinom(6, 9, prob=p_grid)
+newposterior <- newprior * newlikelihood 
+newposterior <- newposterior / sum(newposterior)
+plot(p_grid, newposterior)
+newsamples <- sample(p_grid, 5000, replace = TRUE, prob = newposterior)
+hist(newsamples)
+
+
+```
+
+```{r}
+#non flat prior
+p_grid <- seq(from=0, to=1.0, length.out=500)
+### lolololol
+prior <- c(p_grid[p_grid<0.5]*0, p_grid[p_grid>=0.5]/p_grid[p_grid>=0.5] )
+likelihood <- dbinom(8, size=15, prob=p_grid) #TRY with rbinom, avg over results?
+posterior.unstandardized  <- likelihood*prior
+posterior <- posterior.unstandardized / sum(posterior.unstandardized)
+
+#plot(p_grid, posterior)
+
+samples <- sample( p_grid, 5000, replace=TRUE,prob=posterior) #M2
+HPDI(samples,prob = 0.9) #M2: 0.3313313 0.7197197 NOW: M4:0.5010020 0.7114228
+
+#posterior check
+dsamples <- rbinom(n=length(samples), size=15, prob = samples)
+hist(dsamples) ## NOW closer to the data
+length(dsamples[dsamples==8])/length(samples) #M3: 0.1436 NOW M$: 0.1482
+
+#Using the posterior distribution constructed from the new (8/15) data, now calculate the probability of observing 6 water in 9 tosses.
+#what's the new data? the dsamples
+#use old posterior as prior:
+newprior <- posterior
+newlikelihood <- dbinom(6, 9, prob=p_grid)
+newposterior <- newprior * newlikelihood 
+newposterior <- newposterior / sum(newposterior)
+plot(p_grid, newposterior)
+newsamples <- sample(p_grid, 5000, replace = TRUE, prob = newposterior)
+hist(newsamples)
+
+
+```
+# HARD
+
+
+```{r}
+library(rethinking)
+data(homeworkch3)
+#H1
+p_grid <- seq(from=0, to=1, length.out = 1000)
+prior <- rep(1, length(p_grid))
+#
+all_births <- c(birth1, birth2)
+cboys <- sum(all_births)
+size <- length(all_births)
+
+
+likelihood <- dbinom(x=cboys, size=size, prob = p_grid)#this is mind twisting: we resample from x thus shaping pgrid
+posterior.unstandardized <- prior*likelihood
+posterior <- posterior.unstandardized / sum(posterior.unstandardized)
+plot(p_grid, posterior)
+
+#H2
+samples <- sample(p_grid, replace = TRUE, size = 10000, prob = posterior)
+hist(samples)
+HPDI(samples, prob = .5)
+HPDI(samples, prob = .89)
+HPDI(samples, prob = .97)
+
+```
+```{r}
+#H3
+sims <- rbinom(n = 10000, size = 200, prob = samples) # samples: values for p drawn from posterior
+dens(sims)
+abline(v = 111) # looks spot on
+```
+
+```{r}
+#H4
+nboysb1 <- sum(birth1) # 51
+# what's the probability to draw nboysb1 from 100?
+sims100 <- rbinom(10000, size = 100, prob = samples) #samples: p vals from posterior on 200 data
+dens(sims100)
+abline(v = nboysb1) # looks spot on
+
+
+p_grid <- seq(from=0, to=1, length.out = 1000)
+prior <- rep(1, length(p_grid))
+likelihoodb1 <- dbinom(x=nboysb1, size = length(birth1), prob = p_grid)
+posteriorb1.unstandardized <- prior*likelihoodb1 
+posteriorb1 <- posteriorb1.unstandardized / sum(posteriorb1.unstandardized)
+samplesb1 <- sample(p_grid, replace = TRUE, size = 10000, prob = posteriorb1)
+
+simsb1 <- rbinom(n = 10000, size = 200, prob = samplesb1) # samples: values for p drawn from posterior
+dens(sims)
+dens(simsb1, add=TRUE, type = 'o',)
+
+abline(v = 111) # looks spot on
+```
+```{r}
+firstgirls <- sum(birth1==0)
+firstwasgirl <- birth2[birth1==0]
+firstgirls
+boyfirstwasgirl <- sum(firstwasgirl)
+
+simboys <- rbinom(n = 10000, size = firstgirls, prob = samples) #10k samples from posterior if idependent
+dens(simboys, adj=1,)
+abline(v=boyfirstwasgirl,  ) #what an outlier this number of boys following a girl is! probs engineering of designer babies.
+```
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=1000 ) 
+d <- c(birth1, birth2)
+boys <- sum(d)
+size <- length(d)
+prior <- rep( 1 , length( p_grid ) )
+likelihood <- dbinom( x=boys, size=size , prob=p_grid )
+posterior.unweighted <- likelihood*prior
+posterior <- posterior.unweighted / sum(posterior.unweighted)
+plot( p_grid , posterior , type='l' )
+
+#H2
+samples <- sample(posterior,10000,  replace = TRUE)
+hist( samples)
+HPDI(samples, 0.97)
+
+#H5
+#data(homeworkch3)
+
+
+#likelihood <- rbinom(p_grid, size=200, prob=p_grid)
+#posterior.unweighted <- likelihood*prior
+#posterior <- posterior.unweighted / sum(posterior.unweighted)
+#hist(posterior)
+```
+
+
+
+
+
