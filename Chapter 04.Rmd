@@ -1,0 +1,231 @@
+---
+title: "Chapter 04"
+output: html_notebook
+---
+date: 2017-08-24
+moderator: REne
+
+# Chapter 4 summary
+
+* __Normality__: In nature, many many things you measure are gaussian distributed. Why is that? It is because many things you measure are results of summing the effects of many other processes. And long sums of any distribution are gaussian distributed, according to the central limit theorem. Cool is also that normality also comes from long products of things, as long as they are close to 1. Watch out: for products of big things, take to the log, and you convert products into sums. 
+
+* __Writing down the model__: There is a nice standardised way of writing down your model, which already includes the assumptions, like that things are independently and identically distributed. 
+
+* ___Useful R functions__: We learnt about some R functions that are super useful: 
+* curve() to plot a distribution over a given range, exp: curve( dnorm( x , 178 , 20 ) , from=100 , to=250 )
+* dens() look at a simple but elegant density plot where you can adjust the smoothness
+* map() to run a bayesian model given a map formular for which you use alist()
+* precis() which summarises the columns of a posterior sample extraction, or even directly the object of a model fit
+* link() make mean predictions from given predictor values, or put in the model fit only to use original data
+* shade() add a shade to a plot by first giving the lower and upper boundary, then the x vector
+* sim() simulate predicted data from the model, given some data, or without data it will predict from original data
+
+* __Standardise__: Move predictors to have a mean zero so that the intercept becomes more intuitive. Also, correlations will disappear, and this will help your MCMC chain. Standardise to interpret relative influence of different predictors, and to handle massive polynomials. But make sure you are familiar with converting back and forth between standardised and real units. 
+
+## Easy
+```{r}
+#### Excercises
+## 4E1. In the model definition below, which line is the likelihood?
+
+# y i ∼ Normal(µ, σ) is the likelihood, because it says how the observations are modelled to follow a normal distribution. This statement allows to count the ways in which combinations of parameter can make the data
+
+## 4E2. In the model definition just above, how many parameters are in the posterior distribution?
+
+# There are 2 parameters that are in the posterior distribution. 
+
+## 4E3. Using the model definition above, write down the appropriate form of Bayes’ theorem that includes the proper likelihood and priors.
+
+#  posterior = (likelihood * prior) / prob of the data
+#  Pr(µ, σ | y) = Normal(y | µ, σ) * Normal(0, 10) * Uniform(0, 10) / 
+# Int(Normal(y | µ, σ) * Normal(0, 10) * Uniform(0, 10)) dµ dσ # why is the prior in this denominator
+
+
+## 4E4. In the model definition below, which line is the linear model?
+
+# This line: µ i = α + βx i # here the mean becomes a composite parameter=a function that is linear
+
+## 4E5. above, how many parameters are in the posterior distribution?
+
+# This time there are 3 parameters that are in the posterior distribution, because we should not forget that sigma, the error of the normal distribution is also a paramter. 
+
+
+```
+
+
+## Medium
+```{r}
+#### Medium
+
+## 4M1. For the model definition below, simulate observed heights from the prior (not the posterior).
+# yi ∼ Normal(µ, σ)
+# µ ∼ Normal(0, 10)
+# σ ∼ Uniform(0, 10)
+n <- 1e4
+mu_v <- rnorm( n=n , mean=0 , sd=10 ); plot(mu_v)
+sigma_v <- runif( n=n ,  min=0 , max=10 ); plot(sigma_v)
+sim <- rnorm( n=n, mean=mu_v , sd=sigma_v )
+plot( sim ) # look from above
+dens( sim )
+
+## 4M2. Translate the model just above into a map formula.
+mapform4M2 <- 
+                alist(
+                                y ~ dnorm( mu , sigma ),
+                                mu ~ dnorm( 0 , 10 ),
+                                sigma ~ dunif( 0 , 10 )
+                )
+
+# 4M3. Translate the map model formula below into a mathematical model definition.
+
+# yi ~ Normal(µ, σ)
+# µi = α + β xi
+# α ~ Normal(0,50)
+# β ~ Uniform(0,10)
+# σ ~ Uniform(0,50)
+
+```
+
+
+## Hard
+```{r, echo=FALSE}
+#### hard
+# 4H1. The weights listed below were recorded in the !Kung census, but heights were not recorded for these individuals. Provide predicted heights and 89% intervals (either HPDI or PI) for each of these individuals. That is, fill in the table below, using model-based predictions.
+
+library(rethinking)
+data(Howell1)
+d <- Howell1
+str(d)
+
+plot( d$weight , d$height , pch=16)
+
+# I fit a polynomial model that links weight and height
+mapform4H1 <- 
+                alist(
+                                height ~ dnorm( mu , sigma ),
+                                mu <- a + b*weight.s_1 + c*weight.s_2 + d*weight.s_3,
+                                a ~ dnorm( 150 , 50 ),
+                                b ~ dnorm( 0 , 50 ),
+                                c ~ dnorm( 0 , 50 ),
+                                d ~ dnorm( 0 , 50 ),
+                                sigma ~ dunif( 0 , 60 )
+                )
+# standardise weight
+d$weight.s_1 <- ( d$weight - mean( d$weight ) ) / sd(d$weight)
+d$weight.s_2 <- d$weight.s_1^2
+d$weight.s_3 <- d$weight.s_1^3
+
+# fit map
+m4H1 <- rethinking::map(
+                mapform4H1, 
+                data = d
+)
+precis( m4H1 )
+
+# get the predictions sim()
+weight_v <- c( 46.95 , 43.72 , 64.78 , 32.59 , 54.63)
+weight.s_1_p <- (weight_v - mean( d$weight )) / sd(d$weight)
+weight.s_2_p <- weight.s_1_p^2
+weight.s_3_p <- weight.s_1_p^3
+my_sims <- rethinking::sim( m4H1 , data=list(weight.s_1=weight.s_1_p , 
+                                             weight.s_2=weight.s_2_p , 
+                                             weight.s_3=weight.s_3_p), 1e4 )
+# get interval boundaries apply() HPDI() PI()
+height.mean <- apply( my_sims , 2 , mean )
+height.PI <- apply( my_sims , 2 , HPDI , prob=0.89 )
+height.PI <- apply( my_sims , 2 , PI , prob=0.89 )
+
+## 4H2. Select out all the rows in the Howell1 data with ages below 18 years of age. If you do it right, you should end up with a new data frame with 192 rows in it.
+library(rethinking)
+data(Howell1)
+d <- Howell1
+d3 <- d[d$age < 18,]
+dim( d3 )
+
+plot( d3$weight , d3$height )
+# looks like I need polynomial model
+# write map
+mapform4H2 <- 
+                alist(
+                                height ~ dnorm( mu , sigma ),
+                                mu <- a + b*weight.s_1 + c*weight.s_2,
+                                a ~ dnorm( 150 , 40 ),
+                                b ~ dnorm( 0 , 50 ),
+                                c ~ dnorm( 0 , 50 ),
+                                sigma ~ dunif( 0 , 60 )
+                )
+# make the predictors
+d3$weight.s_1 <- (d3$weight - mean( d3$weight )) / sd(d3$weight)
+d3$weight.s_2 <- d3$weight.s_1^2
+
+# fit with map
+fit4H2 <- rethinking::map(
+                mapform4H2,
+                data=d3
+)
+precis( fit4H2 , corr=T )
+
+# plot the data
+plot( d3$weight.s_1 , d3$height ,col=col.alpha(rangi2,0.5) )
+
+# computer model plotting stuff
+weight_v <- seq( from=-2 , to=3 , length.out=30)
+pred_dat <- list( weight.s_1=weight_v , weight.s_2=weight_v^2 )
+mu <- link( fit4H2 , data=pred_dat ) # link to make mean and interval
+mu.mean <- apply( mu , 2 , mean )
+mu.PI <- apply( mu , 2 , PI , prob=0.89 )
+sim.height <- sim( fit4H2 , data=pred_dat )
+height.PI <- apply( sim.height , 2 , PI , prob=0.89 )
+
+# add model to data
+lines( weight_v , mu.mean )
+shade( mu.PI , weight_v )
+shade( height.PI, weight_v )
+
+
+## 4H3. Suppose a colleague of yours, who works on allometry, glances at the practice problems just above. Your colleague exclaims, “That’s silly. Everyone knows that it’s only the logarithm of body weight that scales with height!” Let’s take your colleague’s advice and see what happens.
+
+#(a) Model the relationship between height (cm) and the natural logarithm of weight (log-kg). Use the entire Howell1 data frame, all 544 rows, adults and non-adults. Fit this model, using quadratic approximation:
+library(rethinking)
+data(Howell1)
+d <- Howell1
+d %>% dim()
+# add a log transform
+d$weight_log <- log(d$weight)
+
+# write map function
+mapfunc_4H3 <- alist(
+                height ~ dnorm( mu , sigma ),
+                mu <- a + b*weight_log,
+                a ~ dnorm( 178 , 100 ),
+                b ~ dnorm( 0 , 100 ),
+                sigma ~ dunif( 0 , 50)
+)
+
+d %>% names()
+#
+fit4H3 <- rethinking::map(mapfunc_4H3 , data=d)
+precis( fit4H3 ) # a is negative. And b is positive. Sigma is small, indicating a good fit
+
+# 
+plot( height ~ weight , data=Howell1 , col=col.alpha(rangi2,0.4) )
+#
+weight_v <- seq( from=2, to=65, length.out=50)
+weight_v_log <- log( weight_v )
+pred_dat <- list( weight_log=weight_v_log)
+mu <- link( fit4H3 , data=pred_dat ) # link to make mean and interval
+mu_mean <- apply( mu , 2 , mean)
+mu_meanCI <- apply( mu , 2, HPDI , 0.97)
+sim.height <- rethinking::sim( fit4H3 , data=pred_dat , n=1e4 )
+pred_CI <- apply( sim.height , 2 , HPDI , 0.97)
+
+#
+# add model to data
+lines( weight_v , mu_mean )
+shade( mu_meanCI , weight_v )
+shade( pred_CI, weight_v )
+
+```
+
+
+
+
