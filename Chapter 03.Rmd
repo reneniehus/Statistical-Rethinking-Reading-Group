@@ -7,9 +7,9 @@ moderator: Jonas
 
 # Chapter 3 summary
 
-* __Counting__: The best thing about Bayesian, you don't can simply think empirically by counting things. Everything is counts, even probability distributions. By using this "empirical attack" on the posterior, a difficult problem of integral calculus is transformed into an easy problem of summarising samples. 
+* __Counting__: The best thing about Bayesian, you can simply think empirically by counting things. Everything is counts, even probability distributions. By using this "empirical attack" on the posterior, a difficult problem of integral calculus is transformed into an easy problem of summarising samples. 
 
-* __Bayesian about Hypothesis testing__: The question in Hypothsis testing is, whether the signal from out model about the Hypothesis is real. The biggest impact on this question is not how well you test, but how realistic you choose your hypothesis. Statistical learning is not about fancy testing, but about thinking. 
+* __Bayesian about Hypothesis testing__: The question in Hypothesis testing is, whether the signal from your model about the Hypothesis is real. The biggest impact on this question is not how well you test, but how realistic you choose your hypothesis. Statistical learning is not about fancy testing, but about thinking. 
 
 * __Describe the Posterior__: The highest posterior density interval is the slimmest interval that holds a given fraction of the posterior samples. It is not often reported but it does make a lot of sense. In the end, you need to ask you, what is the easiest way to report your posterior. If it is a weird skewed one, just give the whole distribution. 
 
@@ -242,7 +242,7 @@ dens( fp_sims ); abline( v=51 , col='red' )
 simplehist( fp_sims ); abline( v=51 , col='red')
 
 # 3H5. The model assumes that sex of first and second births are independent. To check this assumption, focus now on second births that followed female first borns. Compare 10,000 simulated counts of boys to only those second births that followed girls. To do this correctly, you need to count the number of first borns who were girls and simulate that many births, 10,000 times. Compare the counts of boys in your simulations to the actual observed count of boys following girls. How does the model look in this light? Any guesses what is going on in these data?
-
+library(rethinking)
 b2_aftergirl <- birth2[birth1 == 0]
 size <- length( b2_aftergirl ) # 49
 nboys <- sum( b2_aftergirl ) # 39
