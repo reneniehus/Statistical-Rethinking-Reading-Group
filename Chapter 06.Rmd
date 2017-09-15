@@ -1,0 +1,24 @@
+---
+title: "Chapter 06"
+output: html_notebook
+---
+date: 2017-09-15
+moderator: Rene
+
+# Chapter 6 summary
+
+* In this chapter we learn about how to 'score' a model, and with this we will be able to combine predictions from models. Scoring good models is not-trivial at all. We want to navigate our model nicely between underfitting and overfitting.
+
+* We learn about information by learning about uncertainty: Information in an event is the reduction of uncertainty due to this event. 
+
+* It is important to understand that there is 'true' uncertainty if we average over physical processes that we do not (want to) capture in our model. So the 70% certainty of tossing water with the earth globe is 'real' once we strip away all the physical details of the process 
+
+* Now, by assigning wrong model trajectories within your small world, you introduce divergence=your surprise if you find out about the real world thinking of your model trajectories. If you assign the correct model trajectories, the divergence is 0. Little divergence means high model accuracy. Kullback-Leibler divergence gives you the formula.
+
+* Next, we admit that we don't know the truth. All we have is the data. So the best way to approximate divergence is by measuring our surprise when seeing the data (as part of the truth): this is the likelihood multiplied for each observation = the joined likelihood. This is called diviance. 
+
+* We can now assess models and weatherforecasters really well. Only the problem is, because the data is only part of the truth, our model might take the data too literally and therefore overfit. Of course validating in a test set helps. But instead of wasting data points, we estimate the out-of-sample diviance from the in sample diviance. Information criteria are doing just that
+
+* Information criteria come in different flavours, and new ones will be developed. At the momement, our favourite is WAIC, but DIC is ok, too. 
+
+* Now that we are great at assessing how well model will predict new points, we can use these scores to weight different models and combine their prodictions. Why through away your models, if some parts of them might be useful to make good predictions? 
