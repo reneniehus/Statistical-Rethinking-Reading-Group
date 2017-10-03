@@ -1,4 +1,4 @@
----
+orterio---
 title: "Jonas Chapter 2"
 output:
   html_document: default
@@ -11,7 +11,7 @@ moderator: Karl
 
 * **Does nature use bayesian?**: animals don't go fully bayesian, instead they use heuristics [= solutions to problems attempting to be good and cheap for immediate goals (instead of optimal)]. Think of heuristics as models that focus on the main predictors, while ignoring some noisy ones. The benefit over a 'full'-model is that you have to sense less, and it protects from overfitting [see Joao's work on evolution of sensing in changing environments]. As long as we don't know anything about the system, e.i. which predictors contain most information, going full bayesian is a great start. 
 
-* **Information Entropy**: We still don't understand the details of entropy maximising functions. But we are starting to understand the broader idea: If *x* is a characteristic of a system [like the result of a coin-flip] and if *f(x)* is a function to describe what *x* is, then the shape of *f(x)* will be of an entropy maximising function when it contains the least information about *x*. On the other hand, when there is information about x [e.i. when then coin is not fair], then *f(x)* will be a function that is biased. In modelling, our main interest is to tell apart the biased part of *f(x)* from the random noise that is contained in the entropy maximising part of *f(x)*. We use the information of the biased part to estimate the model coefficients, and the use the remaining random noise to estimate the variance in the model.
+* **Information Entropy**: We still don't understand the details of entropy maximising functions. But we are starting to understand the broader idea: If *x* is a characteristic of a system [like the result of a coin-flip] and if *f(x)* is a function to describe what *x* is, then the shape of *f(x)* will be of an entropy maximising function when it contains the least information about *x*. On the other hand, when there is information about x [e.i. when then coin is not fair], then *f(x)* will be a function that is biased. In modelling, our main interest is to tell apart the biased part of *f(x)* from the random noise that is contained in the entropy maximising part of *f(x)*. We use the information of the biased part to estimate the model coefficients, and then use the remaining random noise to estimate the variance in the model.
 
 * **Intuitive Likelihood definition**: The likelihood is the relative number of ways in which different conjectures of the model can produce the data. It is simple counting: For each conjecture of the model [= set of parameters of the model] count the different data it can produce, then eliminate the ways that are not consistent with the data. Do this for all conjectures of the model, and then divide by those counts by the total number of counts in which any conjecture can produce any data. 
 
@@ -24,10 +24,6 @@ Here is why not:
     * It might be valuable to keep the separation to retain the information about asian and European populations
     * Instead: you might want to use the point estimates from the 2 studies, add a wider variance to them to recognise your belief in those studies and this as a prior in your study. 
 
-
-
-
-that a function about where a value x of a system lies
 
 # Chapter 2 - Exercises
 

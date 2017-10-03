@@ -13,7 +13,7 @@ moderator: Jonas
 
 * __Describe the Posterior__: The highest posterior density interval is the slimmest interval that holds a given fraction of the posterior samples. It is not often reported but it does make a lot of sense. In the end, you need to ask you, what is the easiest way to report your posterior. If it is a weird skewed one, just give the whole distribution. 
 
-* __Point estimates__: As a researcher you normall want to report a good picture of the posterior, and here point estimates are not helpful. But for decision making, point estimates make sense. In this case, the estimate of choice will depend on the loss-function. So what is the penalty/cost for the estimate being to high or too small. 
+* __Point estimates__: As a researcher you normally want to report a good picture of the posterior, and here point estimates are not helpful. But for decision making, point estimates make sense. In this case, the estimate of choice will depend on the loss-function. So what is the penalty/cost for the estimate being to high or too small. 
 
 #### Average likelihood
 In particular, we realized that there is still uncertainty among us how to interpret the average likelihood. In simple examples, this is the sum of the paths to the data. How can we interpret this when we are dealing with more complicated scenarios, e.g. more data, continuous parameter space? Important to remember the function of this: it makes the posterior sum to one (i.e. turn it into a probability distribution).

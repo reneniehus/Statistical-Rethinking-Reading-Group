@@ -25,7 +25,7 @@ p1 + scale_color_npg()
 Things we discussed today:
 
 * The **general style** in which Richard writes is focussed on narratives that build up to the important points. This does not always work, like when he fails to explain the Saturn-image example. Hopefully, this style is more helpful than annoying in future chapters.
-* As we go through this book, we want to draw conclusions about parallels between the Bayesian approach and **machine learning**, and answer for example: Does our type of data require Bayesian? What different assumptions do me make in Bayesian compared to in machine learning? 
+* As we go through this book, we want to draw conclusions about parallels between the Bayesian approach and **machine learning**, and answer for example: Does our type of data require Bayesian? What different assumptions do we me make in Bayesian compared to in machine learning? 
 * We agree that science is not only about reject Null-Hypothesis. 
 * We all look forward to learn about Information criterions, which we all already used. 
 
